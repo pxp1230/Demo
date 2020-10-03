@@ -14,11 +14,44 @@ code{font-family:Menlo,Monaco,Consolas,"Andale Mono","lucida console","Courier N
 <pre><code class="markdown"></code></pre>
 </body>
 <script>
+function base64ToUint8Array(base64String) {
+    let padding = '='.repeat((4 - base64String.length % 4) % 4);
+    let base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+    let rawData = window.atob(base64);
+    let outputArray = new Uint8Array(rawData.length);
+    for (var i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
 function html2Escape(sHtml) {
     return sHtml.replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});
 }
+
 var search=window.location.search.substring(1);
-var msg = decodeURIComponent(search);
+var msg='';
+if(search.startsWith('.')){
+    var tmp0=search.indexOf('.',1);
+    if(tmp0>1&&tmp0<9){
+        var tmp1=parseInt(search.substring(1,tmp0));
+        var tmp2=search.substring(tmp0+1);
+        if(tmp1==tmp2.length){
+            var tmp3=base64ToUint8Array(tmp2);
+            var tmp4 = pako.inflate(tmp3);
+            var decoder = new TextDecoder();
+            msg = decoder.decode(tmp4);
+        }
+    }
+}else{
+    msg=decodeURIComponent(search);
+}
+
+if(msg==''){
+    msg='ERROR';
+}
 var block = document.getElementsByTagName("code")[0];
 block.innerHTML=html2Escape(msg);
 hljs.highlightBlock(block);
