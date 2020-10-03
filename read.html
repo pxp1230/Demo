@@ -7,6 +7,8 @@
 <script src="https://cdn.bootcdn.net/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/pako/1.0.9/pako_inflate.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.bootcdn.net/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css"/>
+<link href="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.1.2/styles/github.min.css" rel="stylesheet">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
 </head>
 <body class="markdown-body">
 </body>
@@ -52,5 +54,9 @@ document.body.innerHTML=html;
 if(document.getElementsByTagName('h1').length>0){
     document.title=document.getElementsByTagName('h1')[0].innerText;
 }
+
+document.querySelectorAll('pre code').forEach((block) => {
+    hljs.highlightBlock(block);
+});
 </script>
 </html>
