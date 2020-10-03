@@ -16,5 +16,8 @@ var converter = new showdown.Converter();
 converter.setFlavor('github');
 var html = converter.makeHtml(msg);
 document.body.innerHTML=html;
+if(document.getElementsByTagName('h1').length>0){
+    document.title=document.getElementsByTagName('h1')[0].innerText;
+}
 </script>
 </html>
