@@ -14,10 +14,13 @@ code{font-family:Menlo,Monaco,Consolas,"Andale Mono","lucida console","Courier N
 <pre><code class="markdown"></code></pre>
 </body>
 <script>
+function html2Escape(sHtml) {
+    return sHtml.replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});
+}
 var search=window.location.search.substring(1);
 var msg = decodeURIComponent(search);
 var block = document.getElementsByTagName("code")[0];
-block.innerHTML=msg;
+block.innerHTML=html2Escape(msg);
 hljs.highlightBlock(block);
 </script>
 </html>
