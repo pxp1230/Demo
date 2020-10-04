@@ -23,6 +23,11 @@ MathJax = {
 };
 </script>
 <script async src="https://cdn.bootcdn.net/ajax/libs/mathjax/3.1.2/es5/tex-chtml.min.js"></script>
+<style>
+    .img-alt{
+        text-align:center;color:#999;margin-top:8px !important;
+    }
+</style>
 </head>
 <body class="markdown-body">
 </body>
@@ -78,6 +83,22 @@ if(isWeixin && document.getElementsByTagName('a').length>0){
         window.open(tmpa.href,"_self");
     }
 }
+
+document.querySelectorAll('img').forEach((block) => {
+    if(block.alt){
+        var newp = document.createElement('p');
+        var parent = block.parentNode;
+        if (parent.lastChild == block) {
+            parent.appendChild(newp);
+        } else {
+            parent.insertBefore(newp, block.nextSibling)
+        }
+        newp.innerText=block.alt;
+        newp.className='img-alt';
+        block.style.display='block';
+        block.style.margin='0 auto';
+    }
+});
 
 document.querySelectorAll('pre code').forEach((block) => {
     hljs.highlightBlock(block);
