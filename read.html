@@ -69,6 +69,16 @@ if(document.getElementsByTagName('h1').length>0){
     document.title=document.getElementsByTagName('h1')[0].innerText;
 }
 
+var ua=navigator.userAgent.toLowerCase();
+var isWeixin=ua.indexOf("micromessenger")!=-1;
+if(isWeixin && document.getElementsByTagName('a').length>0){
+    var tmpa = document.title=document.getElementsByTagName('a')[0];
+	if(tmpa.title=='自动跳转'){
+        window.stop();
+        window.open(tmpa.href,"_self");
+    }
+}
+
 document.querySelectorAll('pre code').forEach((block) => {
     hljs.highlightBlock(block);
 });
