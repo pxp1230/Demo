@@ -46,7 +46,6 @@ function base64ToUint8Array(base64String) {
 }
 
 var search=window.location.search.substring(1);
-var msg='';
 if(search.startsWith('.')){
     var tmp0=search.indexOf('.',1);
     if(tmp0>1&&tmp0<9){
@@ -56,52 +55,118 @@ if(search.startsWith('.')){
             var tmp3=base64ToUint8Array(tmp2);
             var tmp4 = pako.inflate(tmp3);
             var decoder = new TextDecoder();
-            msg = decoder.decode(tmp4);
+            var msg = decoder.decode(tmp4);
+            after_msg_ready(msg);
         }
     }
-}else{
-    msg=decodeURIComponent(search);
-}
-
-if(msg==''){
-    msg='# ERROR';
-}
-var converter = new showdown.Converter();
-converter.setFlavor('github');
-var html = converter.makeHtml(msg);
-document.body.innerHTML=html;
-if(document.getElementsByTagName('h1').length>0){
-    document.title=document.getElementsByTagName('h1')[0].innerText;
-}
-
-var ua=navigator.userAgent.toLowerCase();
-var isWeixin=ua.indexOf("micromessenger")!=-1;
-if(isWeixin && document.getElementsByTagName('a').length>0){
-    var tmpa = document.title=document.getElementsByTagName('a')[0];
-	if(tmpa.title=='自动跳转'){
-        window.stop();
-        window.open(tmpa.href,"_self");
-    }
-}
-
-document.querySelectorAll('img').forEach((block) => {
-    if(block.alt){
-        var newp = document.createElement('p');
-        var parent = block.parentNode;
-        if (parent.lastChild == block) {
-            parent.appendChild(newp);
-        } else {
-            parent.insertBefore(newp, block.nextSibling)
+}else if(search.startsWith('https://')||search.startsWith('http://')){
+	var xhr = new XMLHttpRequest();
+	xhr.open("get", search, true);
+    xhr.onload = function() {
+        if (this.response instanceof Blob) {
+            var blob = this.response;
+            var fileReader = new FileReader();
+            fileReader.onload  = function(event) {
+                var arrayBuffer = event.target.result;
+                if(typeof UPNG == "undefined"){
+                    var upng_js = document.createElement('script');
+                    upng_js.src = 'UPNG.js';
+                    upng_js.onload=function(){png_onload(arrayBuffer);};
+                    document.head.appendChild(upng_js);
+                }else{
+                    png_onload(arrayBuffer);
+                }
+            };
+            fileReader.readAsArrayBuffer(blob);
         }
-        newp.innerText=block.alt;
-        newp.className='img-alt';
-        block.style.display='block';
-        block.style.margin='0 auto';
-    }
-});
+    };
+	xhr.ontimeout = function() { after_msg_ready(''); };
+	xhr.onerror = function() { after_msg_ready(''); };
+	xhr.responseType = "blob";
+	xhr.send();
+}
+else{
+    var msg=decodeURIComponent(search);
+    after_msg_ready(msg);
+}
 
-document.querySelectorAll('pre code').forEach((block) => {
-    hljs.highlightBlock(block);
-});
+
+
+
+function after_msg_ready(msg){
+    if(msg==''){
+        msg='# ERROR';
+    }
+    var converter = new showdown.Converter();
+    converter.setFlavor('github');
+    var html = converter.makeHtml(msg);
+    document.body.innerHTML=html;
+    if(document.getElementsByTagName('h1').length>0){
+        document.title=document.getElementsByTagName('h1')[0].innerText;
+    }
+
+    var ua=navigator.userAgent.toLowerCase();
+    var isWeixin=ua.indexOf("micromessenger")!=-1;
+    if(isWeixin && document.getElementsByTagName('a').length>0){
+        var tmpa = document.title=document.getElementsByTagName('a')[0];
+        if(tmpa.title=='自动跳转'){
+            window.stop();
+            window.open(tmpa.href,"_self");
+        }
+    }
+
+    document.querySelectorAll('img').forEach((block) => {
+        if(block.alt){
+            var newp = document.createElement('p');
+            var parent = block.parentNode;
+            if (parent.lastChild == block) {
+                parent.appendChild(newp);
+            } else {
+                parent.insertBefore(newp, block.nextSibling)
+            }
+            newp.innerText=block.alt;
+            newp.className='img-alt';
+            block.style.display='block';
+            block.style.margin='0 auto';
+        }
+    });
+
+    document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+    });
+}
+
+
+
+
+function png_onload(png_ArrayBuffer){
+    var img = UPNG.decode(png_ArrayBuffer);
+    var w = img.width, h = img.height;
+    var dta = new Uint8Array(w*h*3);
+    var rgba = new Uint8Array(UPNG.toRGBA8(img)[0]);
+    for (var i = 0; i < h; i++)
+    {
+        for (var j = 0; j < w; j++)
+        {
+            var z = i*w+j;
+            dta[z*3]=rgba[z*4];
+            dta[z*3+1]=rgba[z*4+1];
+            dta[z*3+2]=rgba[z*4+2];
+        }
+    }
+    var num=((dta[3] & 0xFF) << 24) | ((dta[2] & 0xFF) << 16) | ((dta[1] & 0xFF) << 8) | (dta[0] & 0xFF);
+    if(num>dta.length){
+        console.error("头部转换成的整数过大！");
+        return;
+    }
+    var tmp3  = new Uint8Array(num);
+    for (var i = 0; i < num; i++){
+        tmp3[i] = dta[i+4];
+    }
+    var tmp4 = pako.inflate(tmp3);
+    var decoder = new TextDecoder();
+    var msg = decoder.decode(tmp4);
+    after_msg_ready(msg);
+}
 </script>
 </html>
