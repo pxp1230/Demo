@@ -24,9 +24,17 @@ MathJax = {
 </script>
 <script async src="https://cdn.bootcdn.net/ajax/libs/mathjax/3.1.2/es5/tex-chtml.min.js"></script>
 <style>
-    .img-alt{
-        text-align:center;color:#999;margin-top:8px !important;
-    }
+html{
+    height:100%;
+    margin:0px;
+}
+body{
+    height:calc(100% - 16px);
+    margin:8px;
+}
+.img-alt{
+    text-align:center;color:#999;margin-top:8px !important;
+}
 </style>
 </head>
 <body class="markdown-body">
@@ -189,5 +197,23 @@ function png_onload(png_ArrayBuffer){
     var msg = decoder.decode(tmp4);
     after_msg_ready(msg);
 }
+
+
+
+
+
+document.body.ondragenter=function(e){return false;};
+document.body.ondragover=function(e){return false;};
+document.body.ondrop=function(e){
+	var files = e.dataTransfer.files;
+    if(files.length > 0){
+        var file = files[0];
+        document.title = file.name.substring(0,file.name.lastIndexOf("."));
+        var fileReader = new FileReader();
+        fileReader.onload = fileReader_onload;
+        fileReader.readAsArrayBuffer(file);
+    }
+    return false;
+};
 </script>
 </html>

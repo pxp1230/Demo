@@ -7,7 +7,16 @@
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.0.0/styles/a11y-dark.min.css">
 <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.0.0/highlight.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/pako/1.0.9/pako_inflate.min.js"></script>
-<style type="text/css">
+<style>
+html{
+    height:100%;
+    margin:0px;
+}
+body{
+    height:calc(100% - 16px);
+    margin:8px;
+}
+pre{margin:8px 0;}
 code{font-family:Menlo,Monaco,Consolas,"Andale Mono","lucida console","Courier New",monospace;font-size:12px;line-height:1.5;word-wrap:normal;white-space:pre-wrap;}
 </style>
 </head>
@@ -147,5 +156,29 @@ function png_onload(png_ArrayBuffer){
     var msg = decoder.decode(tmp4);
     after_msg_ready(msg);
 }
+
+
+
+
+
+
+
+
+
+
+
+document.body.ondragenter=function(e){return false;};
+document.body.ondragover=function(e){return false;};
+document.body.ondrop=function(e){
+	var files = e.dataTransfer.files;
+    if(files.length > 0){
+        var file = files[0];
+        document.title = file.name.substring(0,file.name.lastIndexOf("."));
+        var fileReader = new FileReader();
+        fileReader.onload = fileReader_onload;
+        fileReader.readAsArrayBuffer(file);
+    }
+    return false;
+};
 </script>
 </html>
