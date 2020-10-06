@@ -66,17 +66,7 @@ if(search.startsWith('.')){
         if (this.response instanceof Blob) {
             var blob = this.response;
             var fileReader = new FileReader();
-            fileReader.onload  = function(event) {
-                var arrayBuffer = event.target.result;
-                if(typeof UPNG == "undefined"){
-                    var upng_js = document.createElement('script');
-                    upng_js.src = 'UPNG.js';
-                    upng_js.onload=function(){png_onload(arrayBuffer);};
-                    document.head.appendChild(upng_js);
-                }else{
-                    png_onload(arrayBuffer);
-                }
-            };
+            fileReader.onload = fileReader_onload;
             fileReader.readAsArrayBuffer(blob);
         }
     };
@@ -93,8 +83,10 @@ else{
 
 
 
+
 function after_msg_ready(msg){
-    if(msg==''){
+    var isError=msg=='';
+    if(isError){
         msg='# ERROR';
     }
     var converter = new showdown.Converter();
@@ -134,11 +126,40 @@ function after_msg_ready(msg){
     document.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightBlock(block);
     });
+
+    if(isError){
+        var file_input = document.createElement('input');
+        file_input.type = 'file';
+        file_input.onchange = function(e){
+            var input = e.target;
+            if(input.files.length > 0){
+                var file = input.files[0];
+                document.title = file.name.substring(0,file.name.lastIndexOf("."));
+                var fileReader = new FileReader();
+                fileReader.onload = fileReader_onload;
+                fileReader.readAsArrayBuffer(file);
+            }
+        };
+        file_input.accept = '.png';
+        document.body.appendChild(file_input);
+    }
 }
 
 
 
 
+
+function fileReader_onload(event){
+    var arrayBuffer = event.target.result;
+    if(typeof UPNG == "undefined"){
+        var upng_js = document.createElement('script');
+        upng_js.src = 'UPNG.js';
+        upng_js.onload=function(){png_onload(arrayBuffer);};
+        document.head.appendChild(upng_js);
+    }else{
+        png_onload(arrayBuffer);
+    }
+}
 function png_onload(png_ArrayBuffer){
     var img = UPNG.decode(png_ArrayBuffer);
     var w = img.width, h = img.height;

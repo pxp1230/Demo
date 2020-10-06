@@ -15,6 +15,9 @@ code{font-family:Menlo,Monaco,Consolas,"Andale Mono","lucida console","Courier N
 <pre><code class="markdown"></code></pre>
 </body>
 <script>
+function html2Escape(sHtml) {
+    return sHtml.replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});
+}
 function base64ToUint8Array(base64String) {
     let padding = '='.repeat((4 - base64String.length % 4) % 4);
     let base64 = (base64String + padding)
@@ -28,12 +31,7 @@ function base64ToUint8Array(base64String) {
     return outputArray;
 }
 
-function html2Escape(sHtml) {
-    return sHtml.replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});
-}
-
 var search=window.location.search.substring(1);
-var msg='';
 if(search.startsWith('.')){
     var tmp0=search.indexOf('.',1);
     if(tmp0>1&&tmp0<9){
@@ -43,18 +41,111 @@ if(search.startsWith('.')){
             var tmp3=base64ToUint8Array(tmp2);
             var tmp4 = pako.inflate(tmp3);
             var decoder = new TextDecoder();
-            msg = decoder.decode(tmp4);
+            var msg = decoder.decode(tmp4);
+            after_msg_ready(msg);
         }
     }
-}else{
-    msg=decodeURIComponent(search);
+}else if(search.startsWith('https://')||search.startsWith('http://')){
+	var xhr = new XMLHttpRequest();
+	xhr.open("get", search, true);
+    xhr.onload = function() {
+        if (this.response instanceof Blob) {
+            var blob = this.response;
+            var fileReader = new FileReader();
+            fileReader.onload = fileReader_onload;
+            fileReader.readAsArrayBuffer(blob);
+        }
+    };
+	xhr.ontimeout = function() { after_msg_ready(''); };
+	xhr.onerror = function() { after_msg_ready(''); };
+	xhr.responseType = "blob";
+	xhr.send();
+}
+else{
+    var msg=decodeURIComponent(search);
+    after_msg_ready(msg);
 }
 
-if(msg==''){
-    msg='ERROR';
+
+
+
+
+function after_msg_ready(msg){
+    var isError=msg=='';
+    if(isError){
+        msg='ERROR';
+    }
+    var block = document.getElementsByTagName("code")[0];
+    block.innerHTML=html2Escape(msg);
+    hljs.highlightBlock(block);
+
+    if(isError){
+        var file_input = document.createElement('input');
+        file_input.type = 'file';
+        file_input.style = 'color:#FFF';
+        file_input.onchange = function(e){
+            var input = e.target;
+            if(input.files.length > 0){
+                var file = input.files[0];
+                document.title = file.name.substring(0,file.name.lastIndexOf("."));
+                var fileReader = new FileReader();
+                fileReader.onload = fileReader_onload;
+                fileReader.readAsArrayBuffer(file);
+            }
+        };
+        file_input.accept = '.png';
+        document.body.appendChild(file_input);
+    }else{
+        var file_input = document.body.lastElementChild;
+        if(file_input.tagName.toLowerCase()=='input'){
+            file_input.remove();
+        }
+    }
 }
-var block = document.getElementsByTagName("code")[0];
-block.innerHTML=html2Escape(msg);
-hljs.highlightBlock(block);
+
+
+
+
+
+function fileReader_onload(event){
+    var arrayBuffer = event.target.result;
+    if(typeof UPNG == "undefined"){
+        var upng_js = document.createElement('script');
+        upng_js.src = 'UPNG.js';
+        upng_js.onload=function(){png_onload(arrayBuffer);};
+        document.head.appendChild(upng_js);
+    }else{
+        png_onload(arrayBuffer);
+    }
+}
+function png_onload(png_ArrayBuffer){
+    var img = UPNG.decode(png_ArrayBuffer);
+    var w = img.width, h = img.height;
+    var dta = new Uint8Array(w*h*3);
+    var rgba = new Uint8Array(UPNG.toRGBA8(img)[0]);
+    for (var i = 0; i < h; i++)
+    {
+        for (var j = 0; j < w; j++)
+        {
+            var z = i*w+j;
+            dta[z*3]=rgba[z*4];
+            dta[z*3+1]=rgba[z*4+1];
+            dta[z*3+2]=rgba[z*4+2];
+        }
+    }
+    var num=((dta[3] & 0xFF) << 24) | ((dta[2] & 0xFF) << 16) | ((dta[1] & 0xFF) << 8) | (dta[0] & 0xFF);
+    if(num>dta.length){
+        console.error("头部转换成的整数过大！");
+        return;
+    }
+    var tmp3  = new Uint8Array(num);
+    for (var i = 0; i < num; i++){
+        tmp3[i] = dta[i+4];
+    }
+    var tmp4 = pako.inflate(tmp3);
+    var decoder = new TextDecoder();
+    var msg = decoder.decode(tmp4);
+    after_msg_ready(msg);
+}
 </script>
 </html>
