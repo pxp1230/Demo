@@ -13,7 +13,7 @@ html{
     margin:0px;
 }
 body{
-    height:calc(100% - 16px);
+    min-height:calc(100% - 16px);
     margin:8px;
 }
 pre{margin:8px 0;}
@@ -167,9 +167,11 @@ function png_onload(png_ArrayBuffer){
 
 
 
-document.body.ondragenter=function(e){return false;};
-document.body.ondragover=function(e){return false;};
+document.body.ondragenter=function(e){e.stopPropagation();e.preventDefault();};
+document.body.ondragover=function(e){e.stopPropagation();e.preventDefault();};
 document.body.ondrop=function(e){
+    e.stopPropagation();
+    e.preventDefault();
 	var files = e.dataTransfer.files;
     if(files.length > 0){
         var file = files[0];
@@ -178,7 +180,6 @@ document.body.ondrop=function(e){
         fileReader.onload = fileReader_onload;
         fileReader.readAsArrayBuffer(file);
     }
-    return false;
 };
 </script>
 </html>
