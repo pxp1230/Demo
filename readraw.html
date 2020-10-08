@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.0.0/styles/a11y-dark.min.css">
 <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.0.0/highlight.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/pako/1.0.9/pako_inflate.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/2.0.6/clipboard.min.js"></script>
 <style>
 html{
     height:100%;
@@ -20,7 +21,7 @@ pre{margin:8px 0;}
 code{font-family:Menlo,Monaco,Consolas,"Andale Mono","lucida console","Courier New",monospace;font-size:12px;line-height:1.5;word-wrap:normal;white-space:pre-wrap;}
 </style>
 </head>
-<body style="background-color: #2b2b2b">
+<body style="background-color: #2b2b2b" ondblclick="dbclick()">
 <pre><code class="markdown"></code></pre>
 </body>
 <script>
@@ -78,12 +79,13 @@ else{
 
 
 
-
+//MAIN function
 function after_msg_ready(msg){
     var isError=msg=='';
     if(isError){
         msg='ERROR';
     }
+    raw_md=msg;
     var block = document.getElementsByTagName("code")[0];
     block.innerHTML=html2Escape(msg);
     hljs.highlightBlock(block);
@@ -181,5 +183,33 @@ document.body.ondrop=function(e){
         fileReader.readAsArrayBuffer(file);
     }
 };
+
+
+
+
+
+
+
+
+var timeout_id;
+function dbclick(){
+    window.clearTimeout(timeout_id);
+    var btn = document.createElement('button');
+    document.body.appendChild(btn);
+    btn.id='cpy-btn';
+    btn.setAttribute('data-clipboard-text',raw_md);
+    var clipboard = new ClipboardJS('#cpy-btn');
+    clipboard.on('success', function(e) {
+        timeout_id=setTimeout(function(){document.body.style.backgroundColor='#2b2b2b';},1000);
+        document.body.style.backgroundColor='#FC0';
+        clipboard.destroy();
+    });
+    clipboard.on('error', function(e) {
+        alert('错误：复制失败！');
+        clipboard.destroy();
+    });
+    btn.click();
+    btn.remove();
+}
 </script>
 </html>
