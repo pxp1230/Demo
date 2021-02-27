@@ -65,7 +65,7 @@ if(search.startsWith('.')){
 	let tmp2=search.substring(tmp0+1);	
 	if(tmp2.startsWith('https://')||tmp2.startsWith('http://')){
 		isBinFile=true;
-		binFileName=tmp1;
+		binFileName=decodeURI(tmp1);
 		search=tmp2;
 	}
 }
