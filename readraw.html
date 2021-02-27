@@ -60,7 +60,7 @@ if(search.startsWith('.')){
     let tmp0=search.indexOf('.',1);
     if(tmp0>1&&tmp0<9){
         let tmp1=parseInt(search.substring(1,tmp0));
-        let tmp2=search.substring(tmp0+1);
+        let tmp2=search.substring(tmp0+1).replace(/%20/g,"+");
         if(tmp1==tmp2.length){
             let tmp3=base64ToUint8Array(tmp2);
             let tmp4 = pako.inflate(tmp3);
