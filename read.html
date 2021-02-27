@@ -37,6 +37,19 @@ body{
 <body class="markdown-body">
 </body>
 <script>
+function uint8arrayToBase64(u8Arr) {
+	let CHUNK_SIZE = 0x8000;
+	let index = 0;
+	let length = u8Arr.length;
+	let result = '';
+	let slice;
+	while (index < length) {
+		slice = u8Arr.subarray(index, Math.min(index + CHUNK_SIZE, length));
+		result += String.fromCharCode.apply(null, slice);
+		index += CHUNK_SIZE;
+	}
+	return btoa(result);
+}
 function base64ToUint8Array(base64String) {
     let padding = '='.repeat((4 - base64String.length % 4) % 4);
     let base64 = (base64String + padding)
@@ -51,16 +64,29 @@ function base64ToUint8Array(base64String) {
 }
 
 var search=window.location.search.substring(1);
+var isBinFile=false;//该参数会影响fileReader_onload()
+var binFileName="";//该参数会影响fileReader_onload()
 if(search.startsWith('.')){
-    var tmp0=search.indexOf('.',1);
+    let tmp0=search.indexOf('.http',1);
+    if(tmp0<0) tmp0=0;
+	let tmp1=tmp0==0?"":search.substring(1,tmp0);
+	let tmp2=search.substring(tmp0+1);	
+	if(tmp2.startsWith('https://')||tmp2.startsWith('http://')){
+		isBinFile=true;
+		binFileName=tmp1;
+		search=tmp2;
+	}
+}
+if(search.startsWith('.')){
+    let tmp0=search.indexOf('.',1);
     if(tmp0>1&&tmp0<9){
-        var tmp1=parseInt(search.substring(1,tmp0));
-        var tmp2=search.substring(tmp0+1);
+        let tmp1=parseInt(search.substring(1,tmp0));
+        let tmp2=search.substring(tmp0+1);
         if(tmp1==tmp2.length){
-            var tmp3=base64ToUint8Array(tmp2);
-            var tmp4 = pako.inflate(tmp3);
-            var decoder = new TextDecoder();
-            var msg = decoder.decode(tmp4);
+            let tmp3=base64ToUint8Array(tmp2);
+            let tmp4 = pako.inflate(tmp3);
+            let decoder = new TextDecoder();
+            let msg = decoder.decode(tmp4);
             after_msg_ready(msg);
         }
     }
@@ -218,9 +244,20 @@ function png_onload(png_ArrayBuffer){
         tmp3[i] = dta[i+4];
     }
     var tmp4 = pako.inflate(tmp3);
-    var decoder = new TextDecoder();
-    var msg = decoder.decode(tmp4);
-    after_msg_ready(msg);
+    
+    if(!isBinFile){
+		var decoder = new TextDecoder();
+		var msg = decoder.decode(tmp4);
+		after_msg_ready(msg);
+    }else{
+		after_msg_ready("# 请点击链接下载文件");
+        let link = document.createElement('a');
+        let file_name = binFileName!=""?binFileName:"delete";
+        link.download=file_name;
+        link.innerText=file_name;
+        link.href="data:application/octet-stream;base64,"+uint8arrayToBase64(tmp4);
+        document.body.appendChild(link);
+    }
 }
 
 
