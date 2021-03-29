@@ -78,7 +78,8 @@ if(search.startsWith('.')){
         }
     }
 }else if(search.startsWith('https://')||search.startsWith('http://')){
-	var xhr = new XMLHttpRequest();
+	var isText = search.endsWith('.md')||search.endsWith('.txt');
+    var xhr = new XMLHttpRequest();
 	xhr.open("get", search, true);
     xhr.onload = function() {
         if (this.response instanceof Blob) {
@@ -86,11 +87,15 @@ if(search.startsWith('.')){
             var fileReader = new FileReader();
             fileReader.onload = fileReader_onload;
             fileReader.readAsArrayBuffer(blob);
+        }else if(typeof this.response === 'string'){
+            after_msg_ready(this.response);
         }
     };
 	xhr.ontimeout = function() { after_msg_ready(''); };
 	xhr.onerror = function() { after_msg_ready(''); };
-	xhr.responseType = "blob";
+	xhr.responseType = isText?"text":"blob";
+    if(isText)
+        xhr.overrideMimeType("text/plain;charset=utf-8");
 	xhr.send();
 }
 else{
